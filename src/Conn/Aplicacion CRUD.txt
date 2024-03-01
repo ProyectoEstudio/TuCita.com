@@ -1,0 +1,110 @@
+
+package Conn;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class Conexion {
+    private static String servidor = "jdbc:mysql://localhost/actividades";
+    private static String user = "root";// Nombre de usuario por defecto
+    private static String pass = "Neocp.140681";// Clave por defecto
+    private static String driver = "com.mysql.cj.jdbc.Driver";
+    private static Connection conexion;
+
+    public Connection getConnection() {
+        return conexion;
+    }
+
+    public void conectar() {
+        try {
+            Class.forName(driver);// Levanto el Driver
+            conexion = DriverManager.getConnection(servidor, user, pass);// Establezco la conexión
+            System.out.println("Conexión realizada con éxito");
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println("Conexión Fallida");
+        }
+    }
+
+    public void desconectar() {
+        if (conexion != null) {
+            try {
+                conexion.close();
+                System.out.println("Conexión cerrada con éxito");
+            } catch (SQLException e) {
+                System.out.println("Error al cerrar la conexión: " + e.getMessage());
+            }
+        }
+    }
+    public void insertarDatos(String nombre, String descripcion) {
+        try {
+            String sql = "INSERT INTO tu_tabla (nombre, descripcion) VALUES (?, ?)";
+            try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+                statement.setString(1, nombre);
+                statement.setString(2, descripcion);
+                statement.executeUpdate();
+                System.out.println("Datos insertados con éxito");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al insertar datos: " + e.getMessage());
+        }
+    }
+    public void consultarDatos() {
+        try {
+            String sql = "SELECT * FROM tu_tabla";
+            try (Statement statement = conexion.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
+
+                while (resultSet.next()) {
+                    String nombre = resultSet.getString("nombre");
+                    String descripcion = resultSet.getString("descripcion");
+                    System.out.println("Nombre: " + nombre + ", Descripción: " + descripcion);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al consultar datos: " + e.getMessage());
+        }
+    }
+    public void actualizarDatos(String nombre, String nuevaDescripcion) {
+        try {
+            String sql = "UPDATE tu_tabla SET descripcion = ? WHERE nombre = ?";
+            try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+                statement.setString(1, nuevaDescripcion);
+                statement.setString(2, nombre);
+                statement.executeUpdate();
+                System.out.println("Datos actualizados con éxito");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al actualizar datos: " + e.getMessage());
+        }
+    }
+    public void eliminarDatos(String nombre) {
+        try {
+            String sql = "DELETE FROM tu_tabla WHERE nombre = ?";
+            try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+                statement.setString(1, nombre);
+                statement.executeUpdate();
+                System.out.println("Datos eliminados con éxito");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al eliminar datos: " + e.getMessage());
+        }
+    }
+    public static void main(String[] args) {
+        Conexion conexion = new Conexion();
+        conexion.conectar();
+
+        // Ejemplos de uso
+        conexion.insertarDatos("Ejemplo", "Descripción de ejemplo");
+        conexion.consultarDatos();
+        conexion.actualizarDatos("Ejemplo", "Nueva descripción");
+        conexion.consultarDatos();
+        conexion.eliminarDatos("Ejemplo");
+        conexion.consultarDatos();
+
+        conexion.desconectar();
+    }
+}
